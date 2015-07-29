@@ -8,25 +8,46 @@
 
 import UIKit
 
-struct ViewModel {
-	var identifier: CellPrototypeIdentifier
-	var representedObject: AnyObject
-	var rowHeight: CGFloat
+/// We use a base class for the cells on the screen. This helps with consistency.
+class BaseCell: UITableViewCell {
+	var viewModel: ViewModel? {
+		didSet {
+			updateSubviews()
+		}
+	}
+
+	func updateSubviews() {
+		// ...
+	}
 }
 
+/// A subclass for each prototype
+class UserCell: BaseCell {}
+class ActivityCell: BaseCell {}
+class OtherDetailsCell: BaseCell {}
+
+/// Encapsulates values used to configure one cell
+struct ViewModel {
+	var identifier: CellPrototypeIdentifier // What cell are we going to instantiate?
+	var representedObject: AnyObject // This could be a User, or an Activity
+	var rowHeight: CGFloat // Necessary because IB doesn't respect the row heights set for prototypes.
+}
+
+/// Prototypes set in IB
 enum CellPrototypeIdentifier: String {
 	case UserCell = "UserCell"
 	case ActivityCell = "ActivityCell"
 	case OtherDetailsCell = "OtherDetailsCell"
 }
 
+// Simple classes used for illustration purposes.
 class User {}
 class Activity {}
 
+// Our table view controller
 class ViewController: UITableViewController {
-	var currentUser = User()
-
 	var dataSource: [ViewModel]!
+	var currentUser = User()
 
 	override func viewDidLoad() {
 		super.viewDidLoad()
@@ -52,7 +73,7 @@ class ViewController: UITableViewController {
 	override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
 		let viewModel = dataSource[indexPath.row]
 		let identifier = viewModel.identifier
-		var cell = tableView.dequeueReusableCellWithIdentifier(identifier.rawValue, forIndexPath: indexPath) as! ViewModelContainingCell
+		var cell = tableView.dequeueReusableCellWithIdentifier(identifier.rawValue, forIndexPath: indexPath) as! BaseCell
 
 		// Configure the cell
 		cell.viewModel = viewModel
@@ -65,12 +86,3 @@ class ViewController: UITableViewController {
 		return viewModel.rowHeight
 	}
 }
-
-class ViewModelContainingCell: UITableViewCell {
-	var viewModel: ViewModel?
-}
-
-class UserCell: ViewModelContainingCell {}
-class ActivityCell: ViewModelContainingCell {}
-class OtherDetailsCell: ViewModelContainingCell {}
-
